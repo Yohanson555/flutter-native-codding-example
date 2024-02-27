@@ -58,17 +58,24 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   static const platform = MethodChannel('samples.flutter.dev/battery');
   String _batteryLevel = 'Unknown battery level.';
+  bool _loading = false;
 
   Future<void> _getBatteryLevel() async {
     String batteryLevel;
+    setState(() {
+      _loading = true;
+    });
+
     try {
+      await Future.delayed(Duration(seconds: 1));
       final result = await platform.invokeMethod<int>('getBatteryLevel');
       batteryLevel = 'Battery level at $result % .';
-    } on PlatformException catch (e) {
-      batteryLevel = "Failed to get battery level: '${e.message}'.";
+    } catch (e) {
+      batteryLevel = "Failed to get battery level: '${e.toString()}'.";
     }
 
     setState(() {
+      _loading = false;
       _batteryLevel = batteryLevel;
     });
   }
@@ -123,7 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: _getBatteryLevel,
         tooltip: 'Check battery',
-        child: const Icon(Icons.battery_unknown_outlined),
+        child: _loading ? CircularProgressIndicator() : Icon(Icons.battery_unknown_outlined),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
